@@ -1,0 +1,30 @@
+#include <bits/stdc++.h>
+#define ll long long
+#define ld long double
+#define pii pair<int, int>
+#define all(a) (a).begin(), (a).end()
+using namespace std;
+int main()
+{
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    long long n, aux= 0;
+
+    long long predictedSum = 1;
+    long long realSum = 0;
+    cin >> n;
+
+    while(n-- != 1){
+
+        cin >> aux;
+
+        realSum+=aux;
+
+        predictedSum += n+1;
+
+    }
+
+    cout << predictedSum - realSum;
+    return 0;
+}
