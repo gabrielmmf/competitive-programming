@@ -31,7 +31,7 @@ void solve()
         cin >> qts[i] >> weights[i];
     }
 
-    vector<vector<pair<int, int>>> dp(n + 1, vector<pair<int, int>>(51, make_pair(0, 0)));
+    vector<vector<pair<int, int>>> max_items(n + 1, vector<pair<int, int>>(51, make_pair(0, 0)));
 
     for (int i = 1; i <= n; i++)
     {
@@ -39,32 +39,32 @@ void solve()
         {
             if (weights[i - 1] > w)
             {
-                dp[i][w] = dp[i - 1][w];
+                max_items[i][w] = max_items[i - 1][w];
             }
             else
             {
-                auto prev = dp[i - 1][w];
-                auto curr = make_pair(dp[i - 1][w - weights[i - 1]].first + qts[i - 1], dp[i - 1][w - weights[i - 1]].second + weights[i - 1]);
+                auto prev = max_items[i - 1][w];
+                auto curr = make_pair(max_items[i - 1][w - weights[i - 1]].first + qts[i - 1], max_items[i - 1][w - weights[i - 1]].second + weights[i - 1]);
                 if (prev.first > curr.first)
                 {
-                    dp[i][w] = prev;
+                    max_items[i][w] = prev;
                 }
                 else
                 {
-                    dp[i][w] = curr;
+                    max_items[i][w] = curr;
                 }
             }
         }
     }
 
-    cout << dp[n][50].first << " brinquedos" << endl;
-    cout << "Peso: " << dp[n][50].second << " kg" << endl;
+    cout << max_items[n][50].first << " brinquedos" << endl;
+    cout << "Peso: " << max_items[n][50].second << " kg" << endl;
 
     int w = 50;
     int count = 0;
     for (int i = n; i >= 1; i--)
     {
-        if (dp[i][w] != dp[i - 1][w])
+        if (max_items[i][w] != max_items[i - 1][w])
         {
             count++;
             w -= weights[i - 1];
