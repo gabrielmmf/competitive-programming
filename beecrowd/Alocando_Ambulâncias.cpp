@@ -14,105 +14,77 @@
 #define eb emplace_back
 #define INF 0x3f3f3f3f
 #define LINF 0x3f3f3f3f3f3f3f3fLL
+#define Graph vector<vector<Edge>>
+#define Edge tuple<int, int, int>
 using namespace std;
 
-typedef tuple<int, int, int> Edge;
+int n, m, q, s, t;
 
-class Graph
+vector<int> dist;
+vector<bool> visited;
+
+void insert_edge(vector<vector<Edge>> &g, int u, int v, int w)
 {
-private:
-    vector<vector<Edge>> adj;
-    int size;
+    g[u].eb(w, u, v);
+    g[v].eb(w, v, u);
+}
 
-public:
-    Graph(int n)
+int dijkstra(vector<vector<Edge>> &g, vector<int> hospitals)
+{
+    dist = vector<int>(n, INF);
+    visited = vector<bool>(n, false);
+    priority_queue<Edge, vector<Edge>, greater<Edge>> heap;
+    int maxDist = -1;
+
+    for (int u : hospitals)
     {
-        adj.resize(n);
-        size = n;
+        dist[u] = 0;
+        heap.emplace(0, u, u);
     }
 
-    void insert_edge(int u, int v, int w)
+    while (!heap.empty())
     {
-        adj[u].eb(w, u, v);
-        // If the graph is bidirectional
-        adj[v].eb(w, v, u);
-        return;
+        auto [d, i, j] = heap.top();
+        heap.pop();
+
+        if (d > dist[j])
+            continue;
+
+        dist[j] = d;
+
+        if (d > maxDist)
+            maxDist = d;
+
+        for (auto [w, v1, v2] : g[j])
+        {
+            int new_w = d + w;
+            if (dist[v2] > new_w)
+                heap.emplace(new_w, v1, v2);
+        }
     }
-
-    int dijkstra(vector<int> hospitals)
-    {
-        vector<int> dist(size, INF);
-        vector<bool> visited(size, false);
-        priority_queue<Edge, vector<Edge>, greater<Edge>> heap;
-
-        for (auto u : hospitals)
-        {
-            dist[u] = 0;
-            heap.emplace(0, u, u);
-        }
-
-        while (!heap.empty())
-        {
-            auto [d, i, j] = heap.top();
-            heap.pop();
-
-            if (d > dist[j])
-                continue;
-
-            dist[j] = d;
-
-            for (auto [w, v1, v2] : adj[j])
-            {
-                int new_w = d + w;
-                if (dist[v2] > new_w)
-                    heap.emplace(new_w, v1, v2);
-            }
-        }
-
-        int maxDist = 0;
-
-        for (auto v : dist)
-        {
-            if (v > maxDist)
-            {
-                maxDist = v;
-            }
-        }
-        return maxDist;
-    }
-};
-
-int n, m, q;
+    return maxDist;
+}
 
 void solve()
 {
-    Graph g(n);
+    Graph g(s);
 
     int a, b, w;
-    while (m--)
+
+    while (t--)
     {
         cin >> a >> b >> w;
         a--;
         b--;
-        g.insert_edge(a, b, w);
+        insert_edge(g, a, b, w);
     }
-
-    vector<int> hospitals(q);
-
-    for (int i = 0; i < q; i++)
-    {
-        cin >> hospitals[i];
-        hospitals[i]--;
-    }
-
-    cout << g.dijkstra(hospitals) << endl;
 }
 
 int main()
 {
     _;
 
-    while (cin >> n >> m >> q)
+    while (cin >> s >> t)
     {
         solve();
     }
