@@ -13,12 +13,14 @@
 #define s second
 #define eb emplace_back
 #define INF 0x3f3f3f3f
-#define LINF 0x3f3f3f3f3f3f3f3fLL
+#define LINF 0x3f3f3f3f3f3f3f3fLL7#define read(x)          \
+    for (auto &qw : (x)) \
+        cin >> qw;
 using namespace std;
 
 int main()
 {
     _;
-dfasfasd
+    
     return 0;
 }
