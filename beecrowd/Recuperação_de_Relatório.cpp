@@ -16,94 +16,18 @@
 #define LINF 0x3f3f3f3f3f3f3f3fLL
 using namespace std;
 
-vector<string> numbers, sellers;
+array<string, 4> numbers, sellers;
+array<ll, 6> tp;
+array<ll, 6> saux;
 
 string total;
 
-int getNbyIndex(string numbers, int index)
-{
+ll n;
 
-    string str = "";
-    int count = 0;
-    int i = 0;
-    while (1)
-    {
-        if (numbers[i] == '|' || i >= numbers.length())
-        {
-            count++;
-            if (count > index)
-            {
-                if (str == "")
-                {
-                    // cout << "Nenhum número na posição " << index << endl;
-                    return -1;
-                }
-
-                // cout << "Número " << str << " na posição " << index << endl;
-                return stoi(str);
-            }
-            if (i >= numbers.length())
-            {
-                return 0;
-            }
-            str = "";
-            i++;
-            continue;
-        }
-        str += numbers[i];
-        i++;
-    }
-
-    return stoi(str);
-}
-
-int n;
-
-bool checkValid(string str, bool tp = false)
-{
-
-    if (str[0] == '|' || str[str.length() - 1] == '|')
-        return false;
-
-    int count = 0;
-    int barcount = 0;
-
-    for (int i = 0; i < str.length(); i++)
-    {
-        if (str[i] == '|' && str[i + 1] == '|')
-            return false;
-        if (str[i] == '|' && str[i + 1] == '0')
-        {
-
-            if (i == str.length() - 2)
-            {
-                barcount++;
-                continue;
-            }
-
-            if (str[i + 2] != '|')
-                return false;
-        }
-
-        if (str[i] == '|')
-        {
-            count = 0;
-            barcount++;
-        }
-
-        else
-            count++;
-        if (!tp && count > 3 && barcount < n)
-            return false;
-    }
-
-    return true;
-}
-
-bool permuta(string &str)
+pair<string, string> getmaskandnumber(string &str)
 {
     string mask = "";
-    string numbers = "";
+    string number = "";
 
     for (int i = 0; i < str.length(); i++)
     {
@@ -112,61 +36,172 @@ bool permuta(string &str)
         else
         {
             mask += ".";
-            numbers += str[i];
+            number += str[i];
         }
     }
+    return make_pair(mask, number);
+}
 
-    if (!next_permutation(all(mask)))
-        return false;
+string translate(string &mask, string &number)
+{
 
-    int count = 0;
+    string str = mask;
+
+    ll counter = 0;
 
     for (int i = 0; i < str.length(); i++)
     {
         if (mask[i] == '|')
+        {
             str[i] = '|';
+        }
         else
         {
-            str[i] = numbers[count];
-            count++;
+            str[i] = number[counter];
+            counter++;
         }
     }
 
+    return str;
+}
+
+bool permute(string &str)
+{
+    return prev_permutation(all(str));
+}
+
+bool isvalid(string str, bool total)
+{
+    if (str[0] == '|' || str[str.length() - 1] == '|')
+        return false;
+
+    ll maxsize = 0;
+
+    if (total)
+        maxsize = 4;
+    else
+        maxsize = 3;
+
+    ll currentindex = 0;
+    string currentstring = "";
+
+    for (int i = 0; i <= str.length(); i++)
+    {
+        if (str[i] == '|' || i == str.length())
+        {
+            if (currentstring.length() == 0 || (currentstring.length() > maxsize && str[i] == '|') || currentstring.length() > maxsize + 1)
+            {
+                return false;
+            }
+
+            if (i == str.length())
+            {
+                break;
+            }
+            currentstring = "";
+        }
+        else
+        {
+            currentstring += str[i];
+        }
+    }
     return true;
 }
 
-int pans[4][5];
-int tans[5];
-
-void updateAns(int p[4][5], int t[5])
+bool checksum(string str)
 {
-    if (p[0][0] + p[1][0] + p[2][0] + p[3][0] == t[0])
-    {
-        if (p[0][1] + p[1][1] + p[2][1] + p[3][1] == t[1])
-        {
-            if (p[0][2] + p[1][2] + p[2][2] + p[3][2] == t[2])
-            {
-                if (p[0][3] + p[1][3] + p[2][3] + p[3][3] == t[3])
-                {
-                    if (p[0][4] + p[1][4] + p[2][4] + p[3][4] == t[4])
-                    {
-                        for (int i = 0; i < 4; i++)
-                        {
-                            for (int j = 0; j < 5; j++)
-                            {
-                                pans[i][j] = p[i][j];
-                            }
-                        }
 
-                        for (int i = 0; i < 5; i++)
-                        {
-                            tans[i] = t[i];
-                        }
-                    }
-                }
+    ll sum = 0;
+    string currentstring = "";
+    ll numb = 0;
+    int currentindex = 0;
+
+    saux = {0};
+
+    for (int i = 0; i <= str.length(); i++)
+    {
+        if (str[i] == '|' || i == str.length())
+        {
+            if (currentstring[0] == '0' && currentstring.length() > 1)
+            {
+                return false;
+            }
+            if (i == str.length())
+            {
+                numb = stoll(currentstring);
+                saux[currentindex] = numb;
+                currentindex++;
+                sum -= numb;
+                break;
+            }
+
+            numb = stoll(currentstring);
+            saux[currentindex] = numb;
+            currentindex++;
+            sum += numb;
+            currentstring = "";
+        }
+        else
+        {
+            currentstring += str[i];
+        }
+    }
+
+    if (sum == 0)
+        return true;
+    return false;
+}
+
+bool next_valid_permutation(string &str, bool total = false)
+{
+    string aux;
+
+    auto [mask, number] = getmaskandnumber(str);
+
+    while (permute(mask))
+    {
+        if (isvalid(mask, total))
+        {
+            aux = translate(mask, number);
+            if (checksum(aux))
+            {
+                str = aux;
+                return true;
             }
         }
     }
+    return false;
+}
+
+void printanswer(ll count, array<array<ll, 6>, 4> ss, array<ll, 6> tp)
+{
+    for (int i = 1; i < n; i++)
+    {
+
+        cout << "P" << i << " ";
+    }
+    cout << "Totals" << endl;
+
+    for (int i = 0; i < count; i++)
+    {
+
+        cout << sellers[i];
+
+        for (int j = 0; j < n; j++)
+        {
+            cout << " " << ss[i][j];
+        }
+        cout << endl;
+    }
+
+    cout << "TP";
+
+    for (int i = 0; i < n; i++)
+    {
+        cout << " " << tp[i];
+    }
+
+    cout << endl;
 }
 
 void solve()
@@ -176,23 +211,18 @@ void solve()
 
     string aux;
 
-    numbers.clear();
-    sellers.clear();
+    numbers = {""};
+    sellers = {""};
 
     cin >> aux;
 
-    n = stoi(aux.substr(aux.find_last_of('P') + 1));
+    n = stoll(aux.substr(aux.find_last_of('P') + 1)) + 1;
 
-    string delimiters = "";
-
-    for (int i = 0; i < n; i++)
-    {
-        delimiters += "|";
-    }
+    string delimiters(n - 1, '|');
 
     string number, seller;
 
-    int count = 0;
+    ll count = 0;
     while (1)
     {
         number = "";
@@ -209,168 +239,166 @@ void solve()
 
         if (seller[0] == 'T' && seller[1] == 'P')
         {
-            total = number + delimiters;
+            total = delimiters + number;
             break;
         }
-        number = number + delimiters;
-        numbers.pb(number);
-        sellers.pb(seller);
+        number = delimiters + number;
+        numbers[count] = number;
+        sellers[count] = seller;
         count++;
     }
 
-    vector<string> tpPermutations;
-    vector<string> p1permutations;
-    vector<string> p2permutations;
-    vector<string> p3permutations;
-    vector<string> p4permutations;
-    vector<string> p5permutations;
+    vector<array<ll, 6>> tpPermutations;
+    vector<array<ll, 6>> s1perms;
+    vector<array<ll, 6>> s2perms;
+    vector<array<ll, 6>> s3perms;
+    vector<array<ll, 6>> s4perms;
 
-    while (permuta(total))
+    array<ll, 6> auxvec;
+
+    while (next_valid_permutation(total, true))
     {
-        if (!checkValid(total, true))
-            continue;
-
-        tpPermutations.pb(total);
+        tpPermutations.push_back(saux);
     }
 
-    while (permuta(numbers[0]))
+    while (next_valid_permutation(numbers[0]))
     {
-        if (!checkValid(numbers[0], false))
-            continue;
-        cout << numbers[0] << endl;
-        p1permutations.pb(numbers[0]);
+        s1perms.push_back(saux);
     }
 
-    if (count > 1)
+    while (next_valid_permutation(numbers[1]))
     {
+        s2perms.push_back(saux);
+    }
 
-        while (permuta(numbers[1]))
+    while (next_valid_permutation(numbers[2]))
+    {
+        s3perms.push_back(saux);
+    }
+
+    while (next_valid_permutation(numbers[3]))
+    {
+        s4perms.push_back(saux);
+    }
+
+    for (array<ll, 6> s1 : s1perms)
+    {
+        if (count > 1)
         {
-            if (!checkValid(numbers[1], false))
-                continue;
-
-            cout << numbers[1] << endl;
-            p2permutations.pb(numbers[1]);
-        }
-    }
-
-    if (count > 2)
-    {
-
-        while (permuta(numbers[2]))
-        {
-            if (!checkValid(numbers[2], false))
-                continue;
-            cout << numbers[2] << endl;
-            p3permutations.pb(numbers[2]);
-        }
-    }
-
-    if (count > 3)
-    {
-
-        while (permuta(numbers[3]))
-        {
-            if (!checkValid(numbers[3], false))
-                continue;
-            p4permutations.pb(numbers[3]);
-            cout << numbers[3] << endl;
-        }
-    }
-
-    int p[4][5] = {0};
-
-    int t[5] = {0};
-
-    for (string tp : tpPermutations)
-    {
-        t[0] = getNbyIndex(tp, 0);
-        t[1] = getNbyIndex(tp, 1);
-        t[2] = getNbyIndex(tp, 2);
-        t[3] = getNbyIndex(tp, 3);
-        t[4] = getNbyIndex(tp, 4);
-
-        for (string p1 : p1permutations)
-        {
-            p[0][0] = getNbyIndex(p1, 0);
-            p[0][1] = getNbyIndex(p1, 1);
-            p[0][2] = getNbyIndex(p1, 2);
-            p[0][3] = getNbyIndex(p1, 3);
-            p[0][4] = getNbyIndex(p1, 4);
-
-            if (count <= 1)
+            for (array<ll, 6> s2 : s2perms)
             {
-
-                updateAns(p, t);
-
-                continue;
-            }
-
-            for (string p2 : p2permutations)
-            {
-                p[1][0] = getNbyIndex(p2, 0);
-                p[1][1] = getNbyIndex(p2, 1);
-                p[1][2] = getNbyIndex(p2, 2);
-                p[1][3] = getNbyIndex(p2, 3);
-                p[1][4] = getNbyIndex(p2, 4);
-
-                if (count <= 2)
+                if (count > 2)
                 {
+                    for (array<ll, 6> s3 : s3perms)
+                    {
+                        if (count > 3)
+                        {
+                            for (array<ll, 6> s4 : s4perms)
+                            {
+                                for (array<ll, 6> tp : tpPermutations)
+                                {
+                                    bool ok = true;
+                                    for (int i = 0; i < 6; i++)
+                                    {
+                                        if (s1[i] + s2[i] + s3[i] + s4[i] != tp[i])
+                                        {
+                                            ok = false;
+                                            break;
+                                        }
+                                    }
+                                    if (ok)
+                                    {
+                                        array<array<ll, 6>, 4> ss;
 
-                    updateAns(p, t);
+                                        ss[0] = s1;
+                                        ss[1] = s2;
+                                        ss[2] = s3;
+                                        ss[3] = s4;
+                                        printanswer(count, ss, tp);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            for (array<ll, 6> tp : tpPermutations)
+                            {
+                                bool ok = true;
+                                for (int i = 0; i < 6; i++)
+                                {
+                                    if (s1[i] + s2[i] + s3[i] != tp[i])
+                                    {
+                                        ok = false;
+                                        break;
+                                    }
+                                }
+                                if (ok)
+                                {
+                                    array<array<ll, 6>, 4> ss;
 
-                    continue;
+                                    ss[0] = s1;
+                                    ss[1] = s2;
+                                    ss[2] = s3;
+                                    printanswer(count, ss, tp);
+                                    return;
+                                }
+                            }
+                        }
+                    }
                 }
 
-                for (string p3 : p3permutations)
+                else
                 {
-                    p[2][0] = getNbyIndex(p3, 0);
-                    p[2][1] = getNbyIndex(p3, 1);
-                    p[2][2] = getNbyIndex(p3, 2);
-                    p[2][3] = getNbyIndex(p3, 3);
-                    p[2][4] = getNbyIndex(p3, 4);
-
-                    if (count <= 3)
+                    for (array<ll, 6> tp : tpPermutations)
                     {
+                        bool ok = true;
+                        for (int i = 0; i < 6; i++)
+                        {
+                            if (s1[i] + s2[i] != tp[i])
+                            {
+                                ok = false;
+                                break;
+                            }
+                        }
+                        if (ok)
+                        {
+                            array<array<ll, 6>, 4> ss;
 
-                        updateAns(p, t);
-
-                        continue;
-                    }
-
-                    for (string p4 : p4permutations)
-                    {
-                        p[3][0] = getNbyIndex(p4, 0);
-                        p[3][1] = getNbyIndex(p4, 1);
-                        p[3][2] = getNbyIndex(p4, 2);
-                        p[3][3] = getNbyIndex(p4, 3);
-                        p[3][4] = getNbyIndex(p4, 4);
-
-                        updateAns(p, t);
+                            ss[0] = s1;
+                            ss[1] = s2;
+                            printanswer(count, ss, tp);
+                            return;
+                        }
                     }
                 }
             }
         }
-    }
-
-    /*
-    for (int i = 0; i < count; i++)
-    {
-
-        for (int j = 0; j < n + 1; j++)
+        else
         {
-            cout << pans[i][j] << " ";
+            for (array<ll, 6> tp : tpPermutations)
+            {
+                bool ok = true;
+                for (int i = 0; i < 6; i++)
+                {
+                    if (s1[i] != tp[i])
+                    {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok)
+                {
+                    array<array<ll, 6>, 4> ss;
+
+                    ss[0] = s1;
+
+                    printanswer(count, ss, tp);
+                    return;
+                }
+            }
         }
-        cout << endl;
     }
-
-    cout << "TP";
-
-    for (int i = 0; i < n + 1; i++)
-    {
-        cout << " " << tans[i];
-    } */
-
     return;
 }
 
@@ -378,13 +406,16 @@ int main()
 {
     _;
 
-    int n;
+    ll n;
 
     cin >> n;
+
+    ll i = 0;
 
     while (n--)
     {
         solve();
+        i++;
     }
     return 0;
 }
