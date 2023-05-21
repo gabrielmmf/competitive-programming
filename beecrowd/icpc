@@ -1,0 +1,206 @@
+#include <bits/stdc++.h>
+
+#define _ ios::sync_with_stdio(0); cin.tie(0);
+typedef int ll;
+using namespace std;
+
+
+int t;
+int p;
+vector<pair<ll,pair<ll,ll> > > participantes;
+vector<pair<ll,pair<ll,ll> > > normal;
+vector<int> posi;
+
+bool compara(pair<ll,pair<ll,ll> > a, pair<ll,pair<ll,ll> > b)
+{
+    if(a.first!=b.first){return a.first>b.first;}
+    return a.second.first<b.second.first;
+}
+bool teste(int x)
+{
+    vector<pair<ll,pair<ll,ll> > > usarei;
+
+    for(int i=0;i<t;i++)
+    {
+
+        usarei.push_back({participantes[i].first,{(participantes[i].second.first*x)+participantes[i].second.second,i}});
+
+
+    }
+
+    sort(usarei.begin(),usarei.end(),compara);
+   map<int,int> poscompara;
+        int rultimo=0;
+    int penultimo=0;
+    int pos=1;
+    for(int i=0;i<usarei.size();i++)
+    {
+        if(i==0)
+        {
+            poscompara[usarei[i].second.second]=1;
+            rultimo=usarei[i].first;
+            penultimo=usarei[i].second.first;
+        }
+        else
+        {
+            if(usarei[i].first==rultimo)
+            {
+                if(usarei[i].second.first==penultimo)
+                {
+                 poscompara[usarei[i].second.second]=pos;
+            rultimo=usarei[i].first;
+            penultimo=usarei[i].second.first;
+                }
+                else
+                {
+                    pos++;
+                    poscompara[usarei[i].second.second]=pos;
+            rultimo=usarei[i].first;
+            penultimo=usarei[i].second.first;
+                }
+            }
+            else
+            {
+             pos++;
+                    poscompara[usarei[i].second.second]=pos;
+            rultimo=usarei[i].first;
+            penultimo=usarei[i].second.first;
+            }
+        }
+    }
+  //  cout<<poscompara[0]<<" "<<poscompara[1]<<endl;
+    for(int i=0;i<t;i++)
+    {
+       if(poscompara[usarei[i].second.second]!=posi[usarei[i].second.second])
+       {
+           return false;
+       }
+    }
+
+    return true;
+}
+int main ()
+{_
+while(cin>>t>>p)
+{
+    if(t==0 and p==0){break;}
+    participantes.clear();
+    posi.clear();
+    posi.resize(t);
+    normal.clear();
+    map<pair<int,int>,int> mapa;
+    for(int i=0;i<t;i++)
+    {
+        int pen=0;
+        int tempo=0;
+        int resolvido=0;
+        for(int j=0;j<p;j++)
+        {
+            string s;
+            cin>>s;
+            string numero;
+            int aux=0;
+            for(int z=0;z<s.size();z++)
+            {
+                if(s[z]=='/'){ aux=z+1; break;}
+                numero.push_back(s[z]);
+            }
+            int pnum=0;
+            for(int z=0;z<numero.size();z++)
+            {
+                pnum+=(s[z]-'0')*pow(10,(numero.size()-z)-1);
+            }
+            int tnum=0;
+            for(int z=aux;z<s.size();z++)
+            {
+                if(s[z]=='-'){ tnum=-1; break;}
+
+                tnum+=(s[z]-'0')*pow(10,s.size()-z-1);
+            }
+
+            if(tnum!=-1)
+            {
+
+                tempo+=tnum;
+                pen+=pnum;
+                if(pen>=1){pen--;}
+                resolvido++;
+            }
+        }
+
+        participantes.push_back({resolvido,{pen,tempo}});
+        normal.push_back({resolvido,{tempo+pen*20,i}});
+    }
+
+    sort(normal.begin(),normal.end(),compara);
+
+    int rultimo=0;
+    int penultimo=0;
+    int pos=1;
+    for(int i=0;i<normal.size();i++)
+    {
+        if(i==0)
+        {
+            posi[normal[i].second.second]=1;
+            rultimo=normal[i].first;
+            penultimo=normal[i].second.first;
+        }
+        else
+        {
+            if(normal[i].first==rultimo)
+            {
+                if(normal[i].second.first==penultimo)
+                {
+                     posi[normal[i].second.second]=pos;
+                   rultimo=normal[i].first;
+                   penultimo=normal[i].second.first;
+                }
+                else
+                {
+
+                    pos++;
+                   posi[normal[i].second.second]=pos;
+                   rultimo=normal[i].first;
+                   penultimo=normal[i].second.first;
+                }
+            }
+            else
+            {
+
+                pos++;
+                posi[normal[i].second.second]=pos;
+                rultimo=normal[i].first;
+                penultimo=normal[i].second.first;
+            }
+        }
+    }
+
+    int menor=20;
+    int maior=20;
+    int l=1;
+    int r=20;
+    while(l<=r)
+    {
+        int m = (l+r)/2;
+
+        if(teste(m)==true){menor=m; r=m-1;}
+        else{l=m+1;}
+    }
+    l=20;
+    r=900000;
+    while(l<=r)
+    {
+
+        int m = (l+r)/2;
+        if(teste(m)==true){maior=m; l=m+1;}
+        else{r=m-1;}
+    }
+    if(maior==900000)
+    {
+        cout<<menor<<" *"<<endl;
+    }
+    else cout<<menor<<" "<<(maior)<<endl;
+}
+
+return 0;
+}
