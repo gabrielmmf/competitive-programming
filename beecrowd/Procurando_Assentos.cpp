@@ -18,30 +18,113 @@ using namespace std;
 
 int r, c, k;
 
-vector<vector<bool>> is_free;
+int is_free[301][301];
 
-int row_quants[301];
-int col_quants[301];
+int prefix_sum[301][301];
 
-/* int get_rect(int topi, int topj, int boti, int botj)
+int dp[301][301];
+
+void get_prefix_sum()
 {
-} */
+    for (int i = 0; i < r; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            if (i == 0)
+            {
+                if (j == 0)
+                {
+                    prefix_sum[i][j] = is_free[i][j];
+                }
+                else
+                {
+                    prefix_sum[i][j] = prefix_sum[i][j - 1] + is_free[i][j];
+                }
+            }
+            else
+            {
+                if (j == 0)
+                {
+                    prefix_sum[i][j] = is_free[i][j];
+                }
+                else
+                {
+                    prefix_sum[i][j] = prefix_sum[i][j - 1] + is_free[i][j];
+                }
+            }
+        }
+    }
 
-int rect_count(int topi, int topj, int boti, int botj){
-    
+    for (int i = 0; i < r; i++)
+    {
+        for (int j = 0; j < c; j++)
+        {
+            if (i != 0)
+            {
+                prefix_sum[i][j] += prefix_sum[i - 1][j];
+            }
+
+            // cout << prefix_sum[i][j] << " ";
+        }
+        // cout << endl;
+    }
+}
+
+int count_free(int i1, int j1, int i2, int j2)
+{
+    int top = 0;
+    int left = 0;
+    int diag = 0;
+    if (i1 > 0)
+    {
+        top = prefix_sum[i1 - 1][j2];
+    }
+    if (j1 > 0)
+    {
+        left = prefix_sum[i2][j1 - 1];
+    }
+    if (i1 > 0 && j1 > 0)
+    {
+        diag = prefix_sum[i1 - 1][j1 - 1];
+    }
+    return prefix_sum[i2][j2] - top - left + diag;
+}
+
+int calc_area(int i1, int j1, int i2, int j2)
+{
+    return (i2 - i1 + 1) * (j2 - j1 + 1);
+}
+
+int curr_min;
+
+int get_min_area(int i1, int j1, int i2, int j2)
+{
+    if (i1 >= r || i2 >= r || j1 >= c || j2 >= c)
+    {
+        return INF;
+    }
+    if (count_free(i1, j1, i2, j2) >= k)
+    {
+        return calc_area(i1, j1, i2, j2);
+    }
+
+    int min_desloc = min(get_min_area(i1 + 1, j1, i2 + 1, j2), get_min_area(i1, j1 + 1, i2, j2 + 1));
+
+    int min_l_r = min(get_min_area(i1, j1, i2 + 1, j2), get_min_area(i1, j1, i2, j2 + 1));
+
+    int min_inc = get_min_area(i1, j1, i2 + 1, j2 + 1);
+
+    return min(min_inc, min(min_l_r, min_desloc));
 }
 
 void solve()
 {
-    memset(row_quants, 0, sizeof(row_quants));
-    memset(col_quants, 0, sizeof(col_quants));
     if (r == 0 && c == 0 && k == 0)
         return;
-    is_free.resize(r, vector<bool>(c));
+    memset(is_free, false, sizeof(is_free));
+    curr_min = INF;
 
     char aux;
-
-    int count = 0;
 
     for (int i = 0; i < r; i++)
     {
@@ -50,45 +133,13 @@ void solve()
             cin >> aux;
             if (aux == '.')
             {
-                count++;
-                is_free[i][j] = true;
+                is_free[i][j] = 1;
             }
         }
-        row_quants[i] = count;
     }
 
-    count = 0;
-
-    for (int i = 0; i < c; i++)
-    {
-        for (int j = 0; j < r; j++)
-        {
-            if (is_free[j][i])
-            {
-                count++;
-            }
-        }
-        col_quants[i] = count;
-    }
-
-    for (int i = 0; i < c; i++)
-    {
-        cout << col_quants[i] << endl;
-    }
-
-    cout << endl;
-    /* int min_rect = INF;
-
-    for (int i = 0; i < r; i++)
-    {
-        for (int j = 0; j < c; j++)
-        {
-            if (is_free[i][j])
-            {
-                min_rect = min(min_rect, get_rect(i, j, i, j, 1));
-            }
-        }
-    } */
+    get_prefix_sum();
+    cout << get_min_area(0, 0, 0, 0) << endl;
 }
 
 int main()
