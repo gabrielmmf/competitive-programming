@@ -1,107 +1,144 @@
 #include <bits/stdc++.h>
-#define ll long long
-#define ld long double
-#define _ ios_base::sync_with_stdio(false);cin.tie(0); 
-#define endl '\n'
-#define pii pair<int, int>
-#define all(a) (a).begin(), (a).end()
-#define pb push_back
-#define mp make_pair
-#define f first
-#define s second
-#define eb emplace_back
-#define INF 0x3f3f3f3f
-#define LINF 0x3f3f3f3f3f3f3f3fLL
+
 using namespace std;
 
-string arr[6] = {"XXL", "XL", "L", "M", "S", "XS"};
-vector<pair<int, int>> camisas;
+// Estrutura para representar uma aresta no grafo
+struct Aresta {
+    int destino;
+    int capacidade;
+    int fluxo;
+};
 
-int memo[32][7][7][7][7][7][7];
-int n, m;
+// Função para encontrar um caminho aumentante usando busca em largura
+bool encontraCaminhoAumentante(vector<vector<Aresta>>& grafo, int origem, int destino, vector<int>& pais) {
+    int numVertices = grafo.size();
+    vector<bool> visitados(numVertices, false);
+    queue<int> fila;
+    fila.push(origem);
+    visitados[origem] = true;
+    pais[origem] = -1;
 
-bool is_possible(int idx, int* quants){
-    if(idx >= m){
-        return true;
-    }
-    if(memo[idx][quants[0]][quants[1]][quants[2]][quants[3]][quants[4]][quants[5]] > -1){
-        return memo[idx][quants[0]][quants[1]][quants[2]][quants[3]][quants[4]][quants[5]];
-    }
-    int option1 = camisas[idx].f;
-    int option2 = camisas[idx].s;
+    while (!fila.empty()) {
+        int u = fila.front();
+        fila.pop();
 
-    bool firstpossible = false;
-    bool secondpossible = false;
-    if(quants[option1]>0){
-        int nq[6];
-        for (int i = 0; i < 6; i++) {
-            nq[i] = quants[i];
+        for (auto& aresta : grafo[u]) {
+            int v = aresta.destino;
+            int capacidade = aresta.capacidade;
+            int fluxo = aresta.fluxo;
+
+            if (!visitados[v] && capacidade > fluxo) {
+                fila.push(v);
+                visitados[v] = true;
+                pais[v] = u;
+            }
         }
-        firstpossible = is_possible(idx+1, nq);
-    }
-    if(quants[option2] > 0){
-        int nq[6];
-        for (int i = 0; i < 6; i++) {
-            nq[i] = quants[i];
-        }
-        secondpossible = is_possible(idx+1, nq);
     }
 
-    return memo[idx][quants[0]][quants[1]][quants[2]][quants[3]][quants[4]][quants[5]] = firstpossible || secondpossible;
+    return visitados[destino];
 }
 
+// Função do algoritmo de Ford-Fulkerson
+int fordFulkerson(vector<vector<Aresta>>& grafo, int origem, int destino) {
+    int numVertices = grafo.size();
+
+    // Cria um grafo residual com as mesmas capacidades do grafo original
+    vector<vector<Aresta>> grafoResidual(numVertices);
+    for (int u = 0; u < numVertices; u++) {
+        for (auto& aresta : grafo[u]) {
+            int v = aresta.destino;
+            int capacidade = aresta.capacidade;
+            grafoResidual[u].push_back({ v, capacidade, 0 });
+            grafoResidual[v].push_back({ u, 0, 0 });  // Aresta reversa com capacidade zero para permitir o caminho contrário
+        }
+    }
+
+    vector<int> pais(numVertices);
+    int fluxoMaximo = 0;
+
+    // Enquanto houver um caminho aumentante no grafo residual
+    while (encontraCaminhoAumentante(grafoResidual, origem, destino, pais)) {
+        int fluxoCaminho = INT_MAX;
+
+        // Encontra a capacidade residual mínima ao longo do caminho aumentante
+        for (int v = destino; v != origem; v = pais[v]) {
+            int u = pais[v];
+            for (auto& aresta : grafoResidual[u]) {
+                if (aresta.destino == v) {
+                    fluxoCaminho = min(fluxoCaminho, aresta.capacidade - aresta.fluxo);
+                    break;
+                }
+            }
+        }
+
+        // Atualiza as capacidades residuais das arestas ao longo do caminho aumentante
+        for (int v = destino; v != origem; v = pais[v]) {
+            int u = pais[v];
+            for (auto& aresta : grafoResidual[u]) {
+                if (aresta.destino == v) {
+                    aresta.fluxo += fluxoCaminho;
+                    break;
+                }
+            }
+            for (auto& aresta : grafoResidual[v]) {
+                if (aresta.destino == u) {
+                    aresta.fluxo -= fluxoCaminho;
+                    break;
+                }
+            }
+        }
+
+        // Atualiza o fluxo máximo
+        fluxoMaximo += fluxoCaminho;
+    }
+
+    return fluxoMaximo;
+}
 
 void solve(){
 
+    int n, m;
+
     cin >> n >> m;
 
-    memset(memo, -1, sizeof(memo));
+    unordered_map<string, int> umap;
+    umap["XXL"] = 1;
+    umap["XL"] = 2;
+    umap["L"] = 3;
+    umap["M"] = 4;
+    umap["SM"] = 5;
+    umap["XS"] = 6;
 
-    int quant = n/6;
+    n/=6;
 
-    int quants[6] = {quant, quant, quant, quant, quant, quant};
+    // numero de vertices = fonte + 6 vertices pros tamanhos + m voluntários + terminal = m+8
+    // numero de arestas = 6 das camisas + 2*m + m = 3*m+6
+    int numVertices = m+8;
+    int numArestas = 3*m+6;
 
+    vector<vector<Aresta>> grafo(numVertices);
+
+    for(int i = 1; i<=6; i++){
+        grafo[0].push_back({i, n, 0});
+    }
+    int idx = 0;
     string aux1, aux2;
-
-    camisas.resize(m);
-
-    for ( int i = 0; i<m; i++){
+    for (int i = 0; i < m; i++) {
+        idx = 7+i;
         cin >> aux1 >> aux2;
-
-        int indice1 = -1;
-
-        for(int j = 0; j<6; j++){
-            if(arr[j] == aux1){
-                indice1 = j;
-                break;
-            }
-        }
-
-        int indice2 = -1;
-
-        for(int j = 0; j<6; j++){
-            if(arr[j] == aux2){
-                indice2 = j;
-                break;
-            }
-        }
-        camisas[i].f = indice1;
-        camisas[i].s = indice2;
+        grafo[umap[aux1]].push_back({idx, 1, 0});
+        grafo[idx].push_back({numVertices-1, 1, 0});
     }
 
-    if(is_possible(0,quants)){
+    int fluxoMaximo = fordFulkerson(grafo, 0, numVertices-1);
+    if(fluxoMaximo == m){
         cout << "YES" << endl;
+        return;
     }
-    else {
-        cout << "NO" << endl;
-    }
-
+    cout << "NO" << endl;
 }
- 
-int main()
-{
-    _;
 
+int main() {
     int n;
 
     cin >> n;
@@ -110,5 +147,6 @@ int main()
         solve();
     }
     
+
     return 0;
 }
