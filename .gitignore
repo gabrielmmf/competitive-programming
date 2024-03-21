@@ -1,5 +1,5 @@
 **/*.txt
 **/*.out
-**/test
-**/teste
 **/.vscode
+**/seletiva
+**/.cph
